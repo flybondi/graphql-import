@@ -1,6 +1,6 @@
 {
   "name": "@flybondi/graphql-import",
-  "version": "0.0.0-development",
+  "version": "0.0.0",
   "engines": {
     "node": ">=4.0.0"
   },
