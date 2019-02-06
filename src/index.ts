@@ -7,7 +7,7 @@ import {
   DocumentNode,
   Kind,
 } from 'graphql'
-import { flatten, groupBy, includes, keyBy, isEqual } from 'lodash'
+import { flatten, groupBy, includes, equals, indexBy } from 'ramda'
 import * as path from 'path'
 import * as resolveFrom from 'resolve-from'
 
@@ -114,16 +114,16 @@ export function importSchema(
   // And should always be in the first set, to make sure they
   // are not filtered out.
   const firstTypes = flatten(typeDefinitions).filter(d =>
-    includes(allMergeableTypes, d.name.value),
+    includes(d.name.value, allMergeableTypes),
   )
   const otherFirstTypes = typeDefinitions[0].filter(
-    d => !includes(allMergeableTypes, d.name.value),
+    d => !includes(d.name.value, allMergeableTypes),
   )
   const firstSet = firstTypes.concat(otherFirstTypes)
   const processedTypeNames = []
   const mergedFirstTypes = []
   for (const type of firstSet) {
-    if (!includes(processedTypeNames, type.name.value)) {
+    if (!includes(type.name.value, processedTypeNames)) {
       processedTypeNames.push(type.name.value)
       mergedFirstTypes.push(type)
     } else {
@@ -244,7 +244,7 @@ function collectDefinitions(
     allDefinitions,
   )
 
-  // Add typedefinitions to running total
+  // Add type definitions to running total
   typeDefinitions.push(currentTypeDefinitions)
 
   // Read imports from current file
@@ -256,8 +256,8 @@ function collectDefinitions(
     const moduleFilePath = resolveModuleFilePath(filePath, m.from)
 
     const processedFile = processedFiles.get(key)
-    if (!processedFile || !processedFile.find(rModule => isEqual(rModule, m))) {
-      // Mark this specific import line as processed for this file (for cicular dependency cases)
+    if (!processedFile || !processedFile.find(rModule => equals(rModule, m))) {
+      // Mark this specific import line as processed for this file (for circular dependency cases)
       processedFiles.set(key, processedFile ? processedFile.concat(m) : [m])
       collectDefinitions(
         m.imports,
@@ -292,17 +292,17 @@ function filterImportedDefinitions(
 
   const filteredDefinitions = filterTypeDefinitions(typeDefinitions)
 
-  if (includes(imports, '*')) {
+  if (includes('*', imports)) {
     if (
       imports.length === 1 &&
       imports[0] === '*' &&
       allDefinitions.length > 1
     ) {
-      const previousTypeDefinitions: { [key: string]: DefinitionNode } = keyBy(
-        flatten(allDefinitions.slice(0, allDefinitions.length - 1)).filter(
-          def => !includes(rootFields, def.name.value),
-        ),
+      const previousTypeDefinitions: { [key: string]: DefinitionNode } = indexBy(
         def => def.name.value,
+        flatten(allDefinitions.slice(0, allDefinitions.length - 1)).filter(
+          def => !includes(def.name.value, rootFields),
+        ),
       )
       return typeDefinitions.filter(
         typeDef =>
@@ -313,10 +313,10 @@ function filterImportedDefinitions(
     return filteredDefinitions
   } else {
     const result = filteredDefinitions.filter(d =>
-      includes(imports.map(i => i.split('.')[0]), d.name.value),
+      includes(d.name.value, imports.map(i => i.split('.')[0])),
     )
     const fieldImports = imports.filter(i => i.split('.').length > 1)
-    const groupedFieldImports = groupBy(fieldImports, x => x.split('.')[0])
+    const groupedFieldImports = groupBy(x => x.split('.')[0], fieldImports)
 
     for (const rootType in groupedFieldImports) {
       const fields = groupedFieldImports[rootType].map(x => x.split('.')[1])
@@ -325,7 +325,7 @@ function filterImportedDefinitions(
       ) as any).fields = (filteredDefinitions.find(
         def => def.name.value === rootType,
       ) as ObjectTypeDefinitionNode).fields.filter(
-        f => includes(fields, f.name.value) || includes(fields, '*'),
+        f => includes(f.name.value, fields) || includes('*', fields),
       )
     }
 
@@ -352,6 +352,6 @@ function filterTypeDefinitions(
     'InputObjectTypeDefinition',
   ]
   return definitions
-    .filter(d => includes(validKinds, d.kind))
+    .filter(d => includes(d.kind, validKinds))
     .map(d => d as ValidDefinitionNode)
 }

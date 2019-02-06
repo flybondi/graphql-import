@@ -1,4 +1,4 @@
-import { keyBy, uniqBy, includes } from 'lodash'
+import { groupBy, uniqBy, includes, path, indexBy } from 'ramda'
 import {
   TypeDefinitionNode,
   TypeNode,
@@ -37,7 +37,7 @@ export function completeDefinitionPool(
 ): ValidDefinitionNode[] {
   const visitedDefinitions: { [name: string]: boolean } = {}
   while (newTypeDefinitions.length > 0) {
-    const schemaMap: DefinitionMap = keyBy(allDefinitions, d => d.name.value)
+    const schemaMap: DefinitionMap = indexBy(d => d.name.value, allDefinitions)
     const newDefinition = newTypeDefinitions.shift()
     if (visitedDefinitions[newDefinition.name.value]) {
       continue
@@ -55,7 +55,7 @@ export function completeDefinitionPool(
     visitedDefinitions[newDefinition.name.value] = true
   }
 
-  return uniqBy(definitionPool, 'name.value')
+  return uniqBy(path(['name', 'value']), definitionPool)
 }
 
 /**
@@ -144,7 +144,7 @@ function collectNewTypeDefinitions(
     // collect missing argument input types
     if (
       !definitionPool.some(d => d.name.value === nodeTypeName) &&
-      !includes(builtinTypes, nodeTypeName)
+      !includes(nodeTypeName, builtinTypes)
     ) {
       const argTypeMatch = schemaMap[nodeTypeName]
       if (!argTypeMatch) {
@@ -162,7 +162,7 @@ function collectNewTypeDefinitions(
     const directiveName = directive.name.value
     if (
       !definitionPool.some(d => d.name.value === directiveName) &&
-      !includes(builtinDirectives, directiveName)
+      !includes(directiveName, builtinDirectives)
     ) {
       const directive = schemaMap[directiveName] as DirectiveDefinitionNode
       if (!directive) {
