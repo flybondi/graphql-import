@@ -1,0 +1,10 @@
+type Movie {
+  id: ID!
+  name: String
+  director: String
+  seen: Boolean!
+}
+
+type Query {
+  movie(id: ID!): Movie
+}

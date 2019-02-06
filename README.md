@@ -87,6 +87,77 @@ type Comment {
 }
 ```
 
+### Importing with globs
+
+You can also import every `.graphql` files in your project using globs patterns.
+
+Assume the following directory structure:
+
+```sh
+.
+├── movies.graphql
+├── books.graphql
+```
+
+`movies.graphql`
+
+```graphql
+type Movie {
+  id: ID!
+  name: String
+  director: String
+  seen: Boolean!
+}
+
+type Query {
+  movie(id: ID!): Movie
+}
+```
+
+`books.graphql`
+
+```graphql
+type Book {
+  id: ID!
+  name: String
+  read: Boolean!
+}
+
+type Query {
+  book(id: ID!): Book
+}
+
+type Mutation {
+  readBook(id: ID!): Book
+}
+```
+
+Running `console.log(importSchema('*.graphql'))` produces the following output:
+
+```graphql
+type Query {
+  movie(id: ID!): Movie
+  book(id: ID!): Book
+}
+
+type Mutation {
+  readBook(id: ID!): Book
+}
+
+type Book {
+  id: ID!
+  name: String
+  read: Boolean!
+}
+
+type Movie {
+  id: ID!
+  name: String
+  director: String
+  seen: Boolean!
+}
+```
+
 ## API
 
 Check original [Prisma][prisma] [full documentation][graphql-import-docs] for `graphql-import`.

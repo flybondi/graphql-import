@@ -747,6 +747,33 @@ type Shared {
   expect(importSchema('fixtures/global/a.graphql', { schemas: { shared } })).toBe(expectedSDL);
 });
 
+test('glob import', () => {
+  const expectedSDL = `\
+type Query {
+  movie(id: ID!): Movie
+  book(id: ID!): Book
+}
+
+type Mutation {
+  readBook(id: ID!): Book
+}
+
+type Movie {
+  id: ID!
+  name: String
+  director: String
+  seen: Boolean!
+}
+
+type Book {
+  id: ID!
+  name: String
+  read: Boolean!
+}
+`;
+  expect(importSchema('fixtures/import-glob/*.graphql')).toBe(expectedSDL);
+});
+
 test('missing type on type', () => {
   expect(() => importSchema('fixtures/type-not-found/a.graphql')).toThrowError(
     "Field test: Couldn't find type Post in any of the schemas."

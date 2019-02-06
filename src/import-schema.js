@@ -1,21 +1,45 @@
 'use strict';
 const fs = require('fs');
+const glob = require('glob');
 const { parse, print, Kind } = require('graphql');
-const { flatten, groupBy, includes, equals, indexBy } = require('ramda');
+const {
+  flatten,
+  groupBy,
+  includes,
+  equals,
+  indexBy,
+  compose,
+  trim,
+  endsWith,
+  test
+} = require('ramda');
 const path = require('path');
 const resolveFrom = require('resolve-from');
 const { completeDefinitionPool } = require('./definition');
 
 const rootFields = ['Query', 'Mutation', 'Subscription'];
 
+const readUTF8File = filePath => fs.readFileSync(filePath, { encoding: 'utf8' });
+
+const isFile = compose(
+  endsWith('.graphql'),
+  trim
+);
+
+const isGlob = test(/\*.*\.graphql/);
+
 const read = (schema, schemas) => {
+  if (isGlob(schema)) {
+    return glob
+      .sync(schema)
+      .map(readUTF8File)
+      .join('\n');
+  }
   if (isFile(schema)) {
-    return fs.readFileSync(schema, { encoding: 'utf8' });
+    return readUTF8File(schema);
   }
   return schemas ? schemas[schema] : schema;
 };
-
-const isFile = f => f.endsWith('.graphql');
 
 /**
  * Parse a single import line and extract imported types and schema filename
