@@ -1,32 +1,34 @@
-# graphql-import
+# @flybondi/graphql-import
 
-[![CircleCI](https://circleci.com/gh/prisma/graphql-import.svg?style=shield)](https://circleci.com/gh/prisma/graphql-import) [![npm version](https://badge.fury.io/js/graphql-import.svg)](https://badge.fury.io/js/graphql-import)
+[![CircleCI](https://circleci.com/gh/flybondi/graphql-import/tree/develop.svg?style=svg)](https://circleci.com/gh/flybondi/graphql-import/tree/develop)
+[![js-semistandard-style](https://img.shields.io/badge/code%20style-semistandard-brightgreen.svg?style=flat-square)](https://github.com/Flet/semistandard)
+[![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://github.com/prettier/prettier)
 
-Import &amp; export definitions in GraphQL SDL (also refered to as GraphQL modules)
+Import &amp; export definitions in GraphQL SDL (also referred to as GraphQL modules)
 
-> There is also a [`graphql-import-loader`](https://github.com/prisma/graphql-import-loader) for Webpack available.
+> This is a custom fork of [`graphql-import`][graphql-import] created by [prisma.io][prisma].
 
 ## Install
 
 ```sh
-yarn add graphql-import
+yarn add @flybondi/graphql-import
 ```
 
 ## Usage
 
-```ts
-import { importSchema } from 'graphql-import'
-import { makeExecutableSchema } from 'graphql-tools'
+```js
+const { importSchema } = require('@flybondi/graphql-import');
+const { makeExecutableSchema } = require('graphql-tools');
 
-const typeDefs = importSchema('schema.graphql')
-const resolvers = {}
+const typeDefs = importSchema('./schema.graphql');
+const resolvers = {};
 
-const schema = makeExecutableSchema({ typeDefs, resolvers })
+const schema = makeExecutableSchema({ typeDefs, resolvers });
 ```
 
 Assume the following directory structure:
 
-```
+```sh
 .
 ├── schema.graphql
 ├── posts.graphql
@@ -85,14 +87,15 @@ type Comment {
 }
 ```
 
-## [Full documentation](https://oss.prisma.io/content/graphql-import/overview)
+## API
 
-## Related topics & next steps
+Check original [Prisma][prisma] [full documentation][graphql-import-docs] for `graphql-import`.
 
-- Static import step as build time
-- Namespaces
-- Support importing from HTTP endpoints (or [Links](https://github.com/apollographql/apollo-link))
-- Create RFC to add import syntax to GraphQL spec
+---
 
-<p align="center"><a href="https://oss.prisma.io"><img src="https://imgur.com/IMU2ERq.png" alt="Prisma" height="170px"></a></p>
+Refactored (and maintained) with 💛 by [Flybondi][flybondi].
 
+[graphql-import]: https://www.npmjs.com/package/graphql-import
+[flybondi]: https://flybondi.com
+[prisma]: https://www.prisma.io/
+[graphql-import-docs]: https://oss.prisma.io/content/graphql-import/overview
