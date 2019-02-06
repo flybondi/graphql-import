@@ -1,5 +1,5 @@
 'use strict';
-const { uniqBy, includes, path, indexBy } = require('ramda');
+const { uniqBy, includes, path, indexBy, reverse } = require('ramda');
 
 const builtinTypes = ['String', 'Float', 'Int', 'Boolean', 'ID'];
 const builtinDirectives = ['deprecated', 'skip', 'include'];
@@ -16,7 +16,7 @@ const builtinDirectives = ['deprecated', 'skip', 'include'];
 function completeDefinitionPool(allDefinitions, definitionPool, newTypeDefinitions) {
   const visitedDefinitions = {};
   while (newTypeDefinitions.length > 0) {
-    const schemaMap = indexBy(d => d.name.value, allDefinitions);
+    const schemaMap = indexBy(path(['name', 'value']), reverse(allDefinitions));
     const newDefinition = newTypeDefinitions.shift();
     if (visitedDefinitions[newDefinition.name.value]) {
       continue;

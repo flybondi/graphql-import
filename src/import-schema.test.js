@@ -117,6 +117,21 @@ type Query {
   expect(importSchema('fixtures/imports-only/all.graphql')).toBe(expectedSDL);
 });
 
+test('import schema with shadowed type', () => {
+  const expectedSDL = `\
+type Query {
+  b: B!
+}
+
+type B {
+  x: X
+}
+
+scalar X
+`;
+  expect(importSchema('fixtures/import-shadowed/a.graphql')).toBe(expectedSDL);
+});
+
 test('importSchema: import duplicate', () => {
   const expectedSDL = `\
 type Query {
