@@ -789,6 +789,34 @@ type Book {
   expect(importSchema('fixtures/import-glob/*.graphql')).toBe(expectedSDL);
 });
 
+test('custom schema definition', () => {
+  const expectedSDL = `\
+schema {
+  query: A
+  mutation: B
+  subscription: C
+}
+
+type A {
+  users: [User]
+}
+
+type B {
+  updateUser(name: String!): User
+}
+
+type C {
+  userUpdated: User
+}
+
+type User {
+  name: String
+}
+`;
+
+  expect(importSchema('fixtures/schema-definition/schema.graphql')).toBe(expectedSDL);
+});
+
 test('missing type on type', () => {
   expect(() => importSchema('fixtures/type-not-found/a.graphql')).toThrowError(
     "Field test: Couldn't find type Post in any of the schemas."

@@ -15,9 +15,9 @@ const {
 } = require('ramda');
 const path = require('path');
 const resolveFrom = require('resolve-from');
-const { completeDefinitionPool } = require('./definition');
+const { completeDefinitionPool, getNodeName } = require('./definition');
 
-const rootFields = ['Query', 'Mutation', 'Subscription'];
+const rootFields = ['Query', 'Mutation', 'Subscription', 'schema'];
 
 const readUTF8File = filePath => fs.readFileSync(filePath, { encoding: 'utf8' });
 
@@ -105,21 +105,26 @@ function importSchema(schema, options = {}) {
   // And should always be in the first set, to make sure they
   // are not filtered out.
   const firstTypes = flatten(typeDefinitions).filter(d =>
-    includes(d.name.value, allMergeableTypes)
+    includes(getNodeName(d), allMergeableTypes)
   );
   const otherFirstTypes = typeDefinitions[0].filter(
-    d => !includes(d.name.value, allMergeableTypes)
+    d => !includes(getNodeName(d), allMergeableTypes)
   );
   const firstSet = firstTypes.concat(otherFirstTypes);
   const processedTypeNames = [];
   const mergedFirstTypes = [];
   for (const type of firstSet) {
-    if (!includes(type.name.value, processedTypeNames)) {
-      processedTypeNames.push(type.name.value);
+    if (!includes(getNodeName(type), processedTypeNames)) {
+      processedTypeNames.push(getNodeName(type));
       mergedFirstTypes.push(type);
     } else {
-      const existingType = mergedFirstTypes.find(t => t.name.value === type.name.value);
-      existingType.fields = existingType.fields.concat(type.fields);
+      const existingType = mergedFirstTypes.find(t => getNodeName(t) === getNodeName(type));
+
+      if (type.kind === 'SchemaDefinition') {
+        existingType.operationTypes = existingType.operationTypes.concat(type.operationTypes);
+      } else {
+        existingType.fields = existingType.fields.concat(type.fields);
+      }
     }
   }
 
@@ -271,9 +276,9 @@ function filterImportedDefinitions(imports, typeDefinitions, allDefinitions = []
   if (includes('*', imports)) {
     if (imports.length === 1 && imports[0] === '*' && allDefinitions.length > 1) {
       const previousTypeDefinitions = indexBy(
-        def => def.name.value,
+        getNodeName,
         flatten(allDefinitions.slice(0, allDefinitions.length - 1)).filter(
-          def => !includes(def.name.value, rootFields)
+          def => !includes(getNodeName(def), rootFields)
         )
       );
       return typeDefinitions.filter(
@@ -284,7 +289,7 @@ function filterImportedDefinitions(imports, typeDefinitions, allDefinitions = []
     return filteredDefinitions;
   } else {
     const result = filteredDefinitions.filter(d =>
-      includes(d.name.value, imports.map(i => i.split('.')[0]))
+      includes(getNodeName(d), imports.map(i => i.split('.')[0]))
     );
     const fieldImports = imports.filter(i => i.split('.').length > 1);
     const groupedFieldImports = groupBy(x => x.split('.')[0], fieldImports);
@@ -292,9 +297,9 @@ function filterImportedDefinitions(imports, typeDefinitions, allDefinitions = []
     for (const rootType in groupedFieldImports) {
       const fields = groupedFieldImports[rootType].map(x => x.split('.')[1]);
       filteredDefinitions.find(
-        def => def.name.value === rootType
+        def => getNodeName(def) === rootType
       ).fields = filteredDefinitions
-        .find(def => def.name.value === rootType)
+        .find(def => getNodeName(def) === rootType)
         .fields.filter(f => includes(f.name.value, fields) || includes('*', fields));
     }
 
@@ -310,6 +315,7 @@ function filterImportedDefinitions(imports, typeDefinitions, allDefinitions = []
  */
 function filterTypeDefinitions(definitions) {
   const validKinds = [
+    'SchemaDefinition',
     'DirectiveDefinition',
     'ScalarTypeDefinition',
     'ObjectTypeDefinition',
