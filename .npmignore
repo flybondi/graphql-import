@@ -1,4 +1,2 @@
-src
-fixtures
-docs
-now.json
+# Avoid including unit test files on released package
+src/**/*.test.js

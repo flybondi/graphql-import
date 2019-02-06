@@ -1,0 +1,7 @@
+# import A, B, C from './types.graphql'
+
+schema {
+  query: A
+  mutation: B
+  subscription: C
+}

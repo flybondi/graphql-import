@@ -1,4 +1,4 @@
-# import Query.* from 'b.graphql'
+# import Query.*, Dummy.* from 'b.graphql'
 
 type Query {
     helloA: String

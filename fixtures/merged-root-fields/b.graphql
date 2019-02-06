@@ -10,3 +10,7 @@ type Post {
 input PostFilter {
     field3: Int
 }
+
+type Dummy {
+    field2: String
+}
